@@ -1,0 +1,14 @@
+{
+  "name": "number-guessing-game",
+  "version": "1.0.0",
+  "description": "A CLI number guessing game",
+  "main": "dist/game.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/game.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.11.0"
+  }
+}
