@@ -1,0 +1,26 @@
+pre-commit:
+  parallel: true
+  commands:
+    trailing-whitespace:
+      glob: "*.{md,yml,yaml,json,txt}"
+      run: |
+        for file in {staged_files}; do
+          if grep -qE '[[:space:]]+$' "$file" 2>/dev/null; then
+            echo "$file has trailing whitespace"
+            exit 1
+          fi
+        done
+
+commit-msg:
+  commands:
+    validate-message:
+      run: |
+        msg=$(head -1 {1})
+        if [ ${#msg} -gt 72 ]; then
+          echo "Commit message first line must be 72 characters or less (got ${#msg})"
+          exit 1
+        fi
+        if [ -z "$msg" ]; then
+          echo "Commit message cannot be empty"
+          exit 1
+        fi
