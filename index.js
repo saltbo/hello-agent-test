@@ -7,6 +7,14 @@ app.get("/", (req, res) => {
   res.send("Hello from Agent Kanban");
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: Date.now() });
 });
+
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+}
+
+module.exports = app;
