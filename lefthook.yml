@@ -1,0 +1,73 @@
+# Lefthook quality gates
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    no-large-files:
+      glob: "*"
+      run: |
+        for file in {staged_files}; do
+          size=$(wc -c < "$file" 2>/dev/null || echo 0)
+          if [ "$size" -gt 1048576 ]; then
+            echo "ERROR: $file is $(( size / 1024 ))KB — exceeds 1MB limit"
+            exit 1
+          fi
+        done
+      stage_fixed: false
+
+    no-merge-conflicts:
+      glob: "*"
+      run: |
+        for file in {staged_files}; do
+          if grep -qE '^(<<<<<<<|=======|>>>>>>>)' "$file" 2>/dev/null; then
+            echo "ERROR: $file contains merge conflict markers"
+            exit 1
+          fi
+        done
+      stage_fixed: false
+
+    trailing-whitespace:
+      glob: "*.{md,yml,yaml,json,txt,sh,bash,zsh,js,ts,jsx,tsx,py,go,rs,rb,java,css,html,sql,toml}"
+      run: |
+        fail=0
+        for file in {staged_files}; do
+          if grep -qP '[ \t]+$' "$file" 2>/dev/null; then
+            echo "ERROR: $file has trailing whitespace"
+            fail=1
+          fi
+        done
+        exit $fail
+      stage_fixed: false
+
+    no-secrets:
+      glob: "*"
+      run: |
+        fail=0
+        for file in {staged_files}; do
+          case "$file" in
+            *.env|*.env.*|*credentials*|*secret*|*.pem|*.key)
+              echo "ERROR: $file looks like a secret/credential file"
+              fail=1
+              ;;
+          esac
+          if grep -qE '(AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|-----BEGIN (RSA |EC )?PRIVATE KEY-----)' "$file" 2>/dev/null; then
+            echo "ERROR: $file may contain a secret or API key"
+            fail=1
+          fi
+        done
+        exit $fail
+      stage_fixed: false
+
+    eof-newline:
+      glob: "*.{md,yml,yaml,json,txt,sh,bash,zsh,js,ts,jsx,tsx,py,go,rs,rb,java,css,html,sql,toml}"
+      run: |
+        fail=0
+        for file in {staged_files}; do
+          if [ -s "$file" ] && [ "$(tail -c 1 "$file" | wc -l)" -eq 0 ]; then
+            echo "ERROR: $file is missing a newline at end of file"
+            fail=1
+          fi
+        done
+        exit $fail
+      stage_fixed: false
