@@ -1,0 +1,22 @@
+{
+  "name": "hello-agent-test",
+  "version": "1.0.0",
+  "description": "A simple Express server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.1.0",
+    "lefthook": "^2.1.4",
+    "prettier": "^3.8.1"
+  }
+}
