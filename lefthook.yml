@@ -1,0 +1,59 @@
+# lefthook.yml — quality gates
+# Extend with language-specific checks as the project grows.
+
+pre-commit:
+  parallel: true
+  commands:
+    trailing-whitespace:
+      glob: "*.{md,yml,yaml,json,toml,txt,sh,bash,zsh,js,ts,jsx,tsx,py,go,rs,rb,java,css,html,sql}"
+      run: |
+        for file in {staged_files}; do
+          if grep -Pn '\s+$' "$file"; then
+            echo "^^^ trailing whitespace in $file"
+            exit 1
+          fi
+        done
+      stage_fixed: true
+
+    no-merge-conflicts:
+      glob: "*"
+      run: |
+        for file in {staged_files}; do
+          if grep -En '^(<{7}|>{7}|={7})' "$file" 2>/dev/null; then
+            echo "^^^ merge conflict marker in $file"
+            exit 1
+          fi
+        done
+
+    no-large-files:
+      glob: "*"
+      run: |
+        max_bytes=1048576
+        for file in {staged_files}; do
+          size=$(wc -c < "$file" 2>/dev/null || echo 0)
+          if [ "$size" -gt "$max_bytes" ]; then
+            echo "BLOCKED: $file is $(( size / 1024 ))KB — exceeds 1MB limit"
+            exit 1
+          fi
+        done
+
+    no-secrets:
+      glob: "*.{env,env.*,pem,key,p12,pfx,credentials,credentials.*}"
+      run: |
+        if [ -n "{staged_files}" ]; then
+          echo "BLOCKED: potential secret files staged:"
+          for file in {staged_files}; do
+            echo "  - $file"
+          done
+          exit 1
+        fi
+
+    eof-newline:
+      glob: "*.{md,yml,yaml,json,toml,txt,sh,bash,zsh,js,ts,jsx,tsx,py,go,rs,rb,java,css,html,sql}"
+      run: |
+        for file in {staged_files}; do
+          if [ -s "$file" ] && [ -n "$(tail -c 1 "$file")" ]; then
+            echo "Missing final newline: $file"
+            exit 1
+          fi
+        done
